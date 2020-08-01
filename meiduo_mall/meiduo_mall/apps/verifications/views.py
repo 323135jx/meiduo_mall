@@ -1,5 +1,3 @@
-from django.shortcuts import render
-
 # Create your views here.
 from django.views import View
 from django.http import HttpResponse,JsonResponse
@@ -9,7 +7,9 @@ from meiduo_mall.libs.captcha.captcha import captcha
 import logging
 logger = logging.getLogger('django')
 import random
-from meiduo_mall.libs.yuntongxun.ccp_sms import CCP
+# from meiduo_mall.celery_tasks.yuntongxun.ccp_sms import CCP
+from celery_tasks.sms.tasks import ccp_send_sms_code
+
 
 class ImageCodeView(View):
     '''返回图形验证码的类视图'''
@@ -109,7 +109,8 @@ class SMSCodeView(View):
         # 9. 发送短信验证码
         # 短信模板
         # 同步调用
-        CCP().send_template_sms(mobile,[sms_code, 5], 1)
+        # CCP().send_template_sms(mobile,[sms_code, 5], 1)
+        ccp_send_sms_code.delay(mobile, sms_code)
 
         # 10. 响应结果
         return JsonResponse({'code': 0,

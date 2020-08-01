@@ -14,6 +14,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import sys
+import corsheaders
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 # __file__:当前文件——dev.py
@@ -34,8 +35,12 @@ SECRET_KEY = ')bw8w1jd+*e8tns!s-3_m6rlsv2q4dv-831jqfu#j*m-nl-9@m'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*'] # 表示所有合法语法都能够绑定
-
+# ALLOWED_HOSTS = ['*'] # 表示所有合法语法都能够绑定
+ALLOWED_HOSTS = ['www.meiduo.site',
+                 '127.0.0.1',
+                 'localhost',
+                 'api.meiduo.site'
+                 ]
 
 # Application definition
 
@@ -50,18 +55,26 @@ INSTALLED_APPS = [
     'corsheaders',
 
     'users.apps.UsersConfig',
-    'verifications.apps.VerificationsConfig'
+    'verifications.apps.VerificationsConfig',
+    'oauth.apps.OauthConfig',
+    'areas',
+
+    'goods',
+    'contents',
 ]
 
 MIDDLEWARE = [
+
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+
 ]
 
 ROOT_URLCONF = 'meiduo_mall.urls'
@@ -149,14 +162,14 @@ STATIC_URL = '/static/'
 CACHES = {
     "default": { # 默认存储信息: 存到 0 号库
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.220.147:6379/0",
+        "LOCATION": "redis://127.0.0.1:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     },
     "session": { # session 信息: 存到 1 号库
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.220.147:6379/1",
+        "LOCATION": "redis://127.0.0.1:6379/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -164,6 +177,13 @@ CACHES = {
     "verify_code": {  # 验证码信息: 存到 2 号库
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+    "sms_code": {  # 存储验证码数据
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/3",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -220,9 +240,40 @@ LOGGING = {
 
 AUTH_USER_MODEL = 'users.User'
 
-CORS_ORIGIN_WHITELIST=[
+CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1:8080',
     'http://localhost:8080',
-    'http://www.meiduo.site:8080'
-]
+    'http://www.meiduo.site:8080',
+)
+
 CORS_ALLOW_CREDENTIALS = True
+
+AUTHENTICATION_BACKENDS = ['users.utils.UsernameMobileAuthBackend']
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# 我们使用的smtp服务器地址
+EMAIL_HOST ='smtp.163.com'
+# 端口号
+EMAIL_PORT = 25
+# 邮箱
+EMAIL_HOST_USER = 'jx323135@163.com'
+EMAIL_HOST_PASSWORD = 'NLOCCFGUNXHUTFMG'
+EMAIL_FROM = 'sophy<jx323135@163.com>'
+
+# 邮箱验证链接
+EMAIL_VERIFY_URL = 'http://www.meiduo.site:8080/success_verify_email.html?token='
+
+
+# QQ登录参数
+# 我们申请的 客户端id
+QQ_CLIENT_ID = '101474184'
+# 我们申请的 客户端秘钥
+QQ_CLIENT_SECRET = 'c6ce949e04e12ecc909ae6a8b09b637c'
+# 我们申请时添加的: 登录成功后回调的路径
+QQ_REDIRECT_URI = 'http://www.meiduo.site:8080/oauth_callback.html'
+
+# 制定当前工作使用的存储后端
+DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fastdfs_storage.FastDFSStorage'
+
+# 制定fdfs服务前的域名
+FDFS_URL = 'http://image.meiduo.site:8888/'
