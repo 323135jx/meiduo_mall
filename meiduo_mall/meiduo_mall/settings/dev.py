@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',  # sessions机制储存用户数据
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'django_crontab',
+    
     'corsheaders',
 
     'users.apps.UsersConfig',
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
 
     'goods',
     'contents',
+    'haystack',
 ]
 
 MIDDLEWARE = [
@@ -87,6 +89,7 @@ TEMPLATES = [
 
         # 指定当前django工程查找模版文件的目录
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        # 'DIRS': [os.path.join(BASE_DIR, 'templates')],
 
         'APP_DIRS': True,
         'OPTIONS': {
@@ -277,3 +280,40 @@ DEFAULT_FILE_STORAGE = 'meiduo_mall.utils.fastdfs.fastdfs_storage.FastDFSStorage
 
 # 制定fdfs服务前的域名
 FDFS_URL = 'http://image.meiduo.site:8888/'
+
+# 静态页面文件根目录
+GENERATED_STATIC_HTML_FILES_DIR = os.path.join(os.path.dirname(os.path.dirname(BASE_DIR)),'front_end_pc')
+
+# 制定定时任务执行规则
+# CRONJOBS = [
+#     (
+#         # 分 时 日 月 周
+#
+#         # ====周期执行
+#         # ‘30 × × × ×’　每个小时的第３０分钟
+#
+#         # ====时间间隔执行
+#         # '*/1 * * * *' 每间隔１分钟
+#         '*/1 * * * *',
+#         'contents.generate_index.generate_static_index_html'
+#         '>>' + os.path.join(BASE_DIR, 'logs/crontab.log')
+#     )
+# ]
+# 定时任务
+CRONJOBS = [
+    # 每1分钟生成一次首页静态文件
+    ('*/1 * * * *', 'contents.generate_index.generate_static_index_html', '>> ' + os.path.join(BASE_DIR, 'logs/crontab.log'))
+]
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.220.128:9200/', # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall', # Elasticsearch建立的索引库的名称
+    },
+}
+
+# 当添加、修改、删除数据时，自动生成索引
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
