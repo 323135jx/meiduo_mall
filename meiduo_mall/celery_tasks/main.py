@@ -12,4 +12,4 @@ celery_app = Celery("meiduo")
 # 我们将来实在celery_tasks包所在的目录为工作目录运行异步程序
 celery_app.config_from_object('celery_tasks.config')
 
-celery_app.autodiscover_tasks(['celery_tasks.sms','celery_tasks.email'])
+celery_app.autodiscover_tasks(['celery_tasks.sms','celery_tasks.email', 'celery_tasks.html'])

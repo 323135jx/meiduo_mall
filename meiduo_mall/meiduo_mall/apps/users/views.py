@@ -7,6 +7,7 @@ from django.views import View
 from django.http import JsonResponse
 from django_redis import get_redis_connection
 
+from goods.models import SKU
 from .models import User
 from django.contrib.auth import login,logout,authenticate
 
@@ -629,3 +630,58 @@ class ChangePasswordView(View):
         })
         response.delete_cookie('username')
         return response
+
+
+class UserBrowseHistory(View):
+
+    @method_decorator(login_required)
+    def post(self, request):
+        # 记录用户历史
+        # 1.获取请求参数
+        data = json.loads(request.body.decode())
+        sku_id =data.get('sku_id')
+
+        user = request.user
+        # 2.加入用户炉石记录redis列表中
+        conn = get_redis_connection('history')
+
+        p = conn.pipeline()
+        # 2.1 去重
+        p.lrem('history_%s'%user.id,0,sku_id)
+        # 2.2 左侧插入
+        p.lpush('history_%s'%user.id, sku_id)
+        # 2.3 截断
+        p.ltrim('history_%s'%user.id, 0, 4)
+        p.excute()
+
+        return JsonResponse({
+            'code':0,
+            'errmsg':'ok'
+        })
+
+    @method_decorator(login_required)
+    def get(self,request):
+        user = request.user
+
+        # 1.读取redis游览历史
+        conn = get_redis_connection('history')
+        sku_ids = conn.lrange('history_%s'%user.id, 0, -1)
+
+        # 2.获取sku商品信息
+        # sku_ids = [int(x) for x in sku_ids]
+        skus = SKU.objects.filter(id__in=sku_ids)
+        sku_list = []
+        for sku in skus:
+            sku_list.append({
+                'id': sku.id,
+                'name': sku.name,
+                'price': sku.price,
+                'default_image_url':sku.default_image_url.url
+            })
+
+        # 3.返回响应
+        return JsonResponse({
+            'code':0,
+            'errmsg':'ok',
+            'skus':sku_list
+        })
