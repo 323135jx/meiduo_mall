@@ -108,7 +108,7 @@ class RegisterView(View):
                                       'errmsg': 'allow格式有误'})
 
         # 8.sms_code检验 (链接redis数据库)
-        redis_conn = get_redis_connection('verify_code')
+        redis_conn = get_redis_connection('sms_code')
 
         # 9.从redis中取值
         sms_code_server = redis_conn.get('sms_%s' % mobile)
@@ -174,12 +174,12 @@ class LoginView(View):
     # 4.状态保持
         login(request, user)
     # 5.判断是否记住用户
-        if remembered != True:
+        if remembered :
     # 6.如果没有记住: 关闭立刻失效
-            request.session.set_expiry(0)
+            request.session.set_expiry(None)
         else:
     # 7.如果记住:  设置为两周有效
-            request.session.set_expiry(None)
+            request.session.set_expiry(0)
     # 8.返回响应
         response = JsonResponse({
             'code':0,
@@ -188,7 +188,9 @@ class LoginView(View):
         response.set_cookie('username',
                             username,
                             max_age= 3600*24*14)
-
+        from carts.utills import merge_cart_cookie_to_redis
+        # 合并购物车
+        response = merge_cart_cookie_to_redis(request=request, user=user, response=response)
         return response
 
 class LogoutView(View):
@@ -645,14 +647,14 @@ class UserBrowseHistory(View):
         # 2.加入用户炉石记录redis列表中
         conn = get_redis_connection('history')
 
-        p = conn.pipeline()
+        # p = conn.pipeline()
         # 2.1 去重
-        p.lrem('history_%s'%user.id,0,sku_id)
+        conn.lrem('history_%s'%user.id,0,sku_id)
         # 2.2 左侧插入
-        p.lpush('history_%s'%user.id, sku_id)
+        conn.lpush('history_%s'%user.id, sku_id)
         # 2.3 截断
-        p.ltrim('history_%s'%user.id, 0, 4)
-        p.excute()
+        conn.ltrim('history_%s'%user.id, 0, 4)
+        conn.excute()
 
         return JsonResponse({
             'code':0,

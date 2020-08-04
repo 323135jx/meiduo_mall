@@ -28,6 +28,7 @@ urlpatterns = [
 
     # re_path(r"",include("contents.urls")),
     re_path(r"",include("goods.urls")),
+    re_path(r"",include("carts.urls")),
 
 ]
 
