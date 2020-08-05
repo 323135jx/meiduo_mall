@@ -10,4 +10,9 @@ def login_required(func):
                 'code':400,
                 'errmsg':'您未登录'
             })
+            # 完整解释
+            # return JsonResponse({
+            #     'code':400,
+            #     'errmsg':'您未登录'
+            # }, status = 401)
     return wrapper

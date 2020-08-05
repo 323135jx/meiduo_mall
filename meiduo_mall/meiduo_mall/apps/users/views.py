@@ -14,6 +14,7 @@ from django.contrib.auth import login,logout,authenticate
 from meiduo_mall.utils.views import login_required
 
 from celery_tasks.email.tasks import send_verify_email
+from carts.utills import merge_cart_cookie_to_redis
 
 
 import logging
@@ -65,7 +66,7 @@ class MobileCountView(View):
             'count': count,
         })
 
-
+#　注册
 class RegisterView(View):
 
     def post(self, request):
@@ -136,9 +137,13 @@ class RegisterView(View):
 
 
         request.session.set_expiry(0)
+        response = JsonResponse({'code': 0,'errmsg': 'ok'})
+        response.set_cookie('username',username,max_age= 3600*24*14)
+        # 合并购物车
+        response = merge_cart_cookie_to_redis(request=request, user=user, response=response)
         # 13.拼接json返回
-        return JsonResponse({'code': 0,
-                                 'errmsg': 'ok'})
+        return response
+
 
 class LoginView(View):
 
@@ -185,10 +190,7 @@ class LoginView(View):
             'code':0,
             'errmsg': '小垃圾的第一次登录尝试'
         })
-        response.set_cookie('username',
-                            username,
-                            max_age= 3600*24*14)
-        from carts.utills import merge_cart_cookie_to_redis
+        response.set_cookie('username',username,max_age= 3600*24*14)
         # 合并购物车
         response = merge_cart_cookie_to_redis(request=request, user=user, response=response)
         return response
@@ -654,7 +656,7 @@ class UserBrowseHistory(View):
         conn.lpush('history_%s'%user.id, sku_id)
         # 2.3 截断
         conn.ltrim('history_%s'%user.id, 0, 4)
-        conn.excute()
+        # conn.excute()
 
         return JsonResponse({
             'code':0,

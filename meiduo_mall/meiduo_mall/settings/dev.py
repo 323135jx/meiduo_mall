@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'contents',
     'haystack',
     'carts',
+    'orders',
 ]
 
 MIDDLEWARE = [

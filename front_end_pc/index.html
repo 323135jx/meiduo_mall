@@ -11,7 +11,7 @@
     <script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
     <script type="text/javascript" src="js/slide.js"></script>
 </head>
-<body>
+<body>f
     <div id="app" v-cloak>
     <div class="header_con">
         <div class="header">
@@ -54,30 +54,41 @@
             </ul>
         </div>
 
-        <div class="guest_cart fr">
-            <a href="#" class="cart_name fl">我的购物车</a>
-            <div class="goods_count fl" id="show_count">15</div>
+<!--        <div class="guest_cart fr">-->
+<!--            <a href="#" class="cart_name fl">我的购物车</a>-->
+<!--            <div class="goods_count fl" id="show_count">15</div>-->
 
+<!--            <ul class="cart_goods_show">-->
+<!--                <li>-->
+<!--                    <img src="sku.default_image_url" alt="商品图片">-->
+<!--                    <h4>商品名称手机</h4>-->
+<!--                    <div>4</div>-->
+<!--                </li>-->
+<!--                <li>-->
+<!--                    <img src="#" alt="商品图片">-->
+<!--                    <h4>商品名称手机</h4>-->
+<!--                    <div>5</div>-->
+<!--                </li>-->
+<!--                <li>-->
+<!--                    <img src="#" alt="商品图片">-->
+<!--                    <h4>商品名称手机</h4>-->
+<!--                    <div>6</div>-->
+<!--                </li>-->
+<!--                <li>-->
+<!--                    <img src="#" alt="商品图片">-->
+<!--                    <h4>商品名称手机</h4>-->
+<!--                    <div>6</div>-->
+<!--                </li>-->
+<!--            </ul>-->
+<!--        </div>-->
+        <div @mouseenter="get_cart" class="guest_cart fr" v-cloak>
+            <a href="cart.html" class="cart_name fl">我的购物车</a>
+            <div class="goods_count fl" id="show_count">[[cart_total_count]]</div>
             <ul class="cart_goods_show">
-                <li>
-                    <img src="#" alt="商品图片">
-                    <h4>商品名称手机</h4>
-                    <div>4</div>
-                </li>
-                <li>
-                    <img src="#" alt="商品图片">
-                    <h4>商品名称手机</h4>
-                    <div>5</div>
-                </li>
-                <li>
-                    <img src="#" alt="商品图片">
-                    <h4>商品名称手机</h4>
-                    <div>6</div>
-                </li>
-                <li>
-                    <img src="#" alt="商品图片">
-                    <h4>商品名称手机</h4>
-                    <div>6</div>
+                <li v-for="sku in carts">
+                    <img :src="sku.default_image_url" alt="商品图片">
+                    <h4>[[ sku.name ]]</h4>
+                    <div>[[ sku.count ]]</div>
                 </li>
             </ul>
         </div>

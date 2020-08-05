@@ -8,6 +8,52 @@ from django_redis import get_redis_connection
 from .utills import carts_cookie_decode,carts_cookie_encode
 # Create your views here.
 
+# 简单购物车数据
+class CartsSimpleView(View):
+    """商品页面右上角购物车"""
+
+    def get(self, request):
+        # 1.获取数据
+        # 1.1 判断用户是否登录
+        user = request.user
+        if user.is_authenticated:
+            # 用户已登录,查询Redis购物车
+            conn = get_redis_connection('carts')
+            item_dict = conn.hgetall('carts_%s'%user.id)
+            selected = conn.smembers('selected_%s'%user.id)
+
+            # 将redis中的两个数据统一格式，跟cookie中的格式一直，方便统一查询
+            cart_dict = {}
+            for sku_id, count in item_dict.items():
+                cart_dict[int(sku_id)] = {
+                    'count':int(count),
+                    'selected':sku_id in selected
+                }
+
+        else:
+            # 用户为登录,查询cookie购物车
+            cookie_cart = request.COOKIES.get('carts')
+            if cookie_cart:
+                cart_dict = carts_cookie_decode(cookie_cart)
+            else:
+                cart_dict = {}
+        # 2.处理数据
+        cart_skus = []
+        sku_ids = cart_dict.keys()
+        skus = SKU.objects.filter(id__in=sku_ids)
+        for sku in skus:
+            cart_skus.append({
+                'id':sku.id,
+                'name':sku.name,
+                'count':cart_dict.get(sku.id).get('count'),
+                'default_image_url': sku.default_image_url.url
+            })
+        # 3.返回响应
+        return JsonResponse({
+            'code':0,
+            'errmsg':'ok',
+            'cart_skus':cart_skus
+        })
 
 
 class CartSelectAllView(View):
@@ -84,8 +130,9 @@ class CartsView(View):
 
             if sku_id in cart_dict:
                 del cart_dict[sku_id]
-                cart_data = carts_cookie_encode(cart_dict)
-                response.set_cookie('carts', cart_data)
+                # cart_dict.pop[sku_id]
+            cart_data = carts_cookie_encode(cart_dict)
+            response.set_cookie('carts', cart_data)
             return response
 
     def put(self, request):
@@ -239,9 +286,3 @@ class CartsView(View):
                 cart_str
             )
             return response
-
-
-
-
-
-
