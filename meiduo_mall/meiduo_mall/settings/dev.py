@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'haystack',
     'carts',
     'orders',
+    'payment'
 ]
 
 MIDDLEWARE = [
@@ -120,7 +121,16 @@ DATABASES = {
         'PORT': 3306, # 表示一个服务进程
         'USER': 'itcast',
         'PASSWORD': '123456'
+    },
+    'slave': {
+        'ENGINE': 'django.db.backends.mysql',  # 表示使用mysql
+        'NAME': 'meiduo_mall',
+        'HOST': '127.0.0.1',  # mysql服务所在主机ip
+        'PORT': 8306,  # 表示一个服务进程
+        'USER': 'root',
+        'PASSWORD': '123456'
     }
+
 }
 
 
@@ -334,3 +344,10 @@ HAYSTACK_CONNECTIONS = {
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
+
+# 支付宝SDK配置参数
+ALIPAY_APPID = '2021000116686248'
+ALIPAY_DEBUG = True
+ALIPAY_URL = 'https://openapi.alipaydev.com/gateway.do'
+ALIPAY_RETURN_URL = "http://www.meiduo.site:8080/pay_success.html"
+DATABASE_ROUTERS = ['meiduo_mall.utils.db_router.MasterSlaveDBRouter']
